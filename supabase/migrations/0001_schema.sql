@@ -48,6 +48,19 @@ begin
 end;
 $$;
 
+-- A check constraint can't contain a subquery, but it can call an immutable
+-- function that does. Semi-monthly PH paydays are the norm, so the cap of six
+-- entries is generous rather than restrictive.
+create or replace function payday_days_ok(days int[])
+returns boolean
+language sql
+immutable
+as $$
+  select days is not null
+     and array_length(days, 1) between 1 and 6
+     and not exists (select 1 from unnest(days) as d where d < 1 or d > 31)
+$$;
+
 -- ------------------------------------------------------------- profiles ----
 
 create table profiles (
@@ -63,10 +76,7 @@ create table profiles (
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
   constraint week_start_valid check (week_start between 0 and 6),
-  constraint payday_days_valid check (
-    array_length(payday_days, 1) between 1 and 6
-    and payday_days <@ (select array(select generate_series(1, 31)))
-  )
+  constraint payday_days_valid check (payday_days_ok(payday_days))
 );
 
 create trigger profiles_updated_at
