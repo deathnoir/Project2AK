@@ -1,0 +1,133 @@
+@import 'tailwindcss';
+
+/*
+  Project2AK — ledger aesthetic.
+
+  Ink navy chrome on paper. Hairline rules. Figures in tabular monospace,
+  right-aligned, so columns scan like a bank statement. Colour encodes sign
+  and nothing else — there is no decorative colour anywhere in this app, and
+  adding some is the fastest way to make it stop looking like a ledger.
+*/
+
+@theme {
+  --color-ink: #10182b;
+  --color-ink-70: #4a5266;
+  --color-ink-45: #7c8296;
+  --color-ink-25: #b3b7c2;
+
+  --color-paper: #fbfaf7;
+  --color-paper-sunk: #f4f2ec;
+  --color-rule: #e3e0d8;
+  --color-rule-strong: #cfcbc0;
+
+  /* Sign only. Jade positive, rose negative. */
+  --color-jade: #0e7c66;
+  --color-jade-soft: #e6f2ee;
+  --color-rose: #b4304a;
+  --color-rose-soft: #fbeaed;
+
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, 'SFMono-Regular', monospace;
+
+  --radius-card: 6px;
+}
+
+/*
+  Dark mode is a deliberate inversion of the same ledger, not a second design:
+  ink becomes the paper, and the rules stay hairline. The sign colours shift
+  up in lightness so they hold contrast against a dark ground.
+*/
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-ink: #eceada;
+    --color-ink-70: #b8b6a8;
+    --color-ink-45: #85837a;
+    --color-ink-25: #56554f;
+    --color-paper: #0d131f;
+    --color-paper-sunk: #131a29;
+    --color-rule: #242c3d;
+    --color-rule-strong: #374054;
+    --color-jade: #4bbfa1;
+    --color-jade-soft: #12302a;
+    --color-rose: #e8798d;
+    --color-rose-soft: #331721;
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-ink: #eceada;
+  --color-ink-70: #b8b6a8;
+  --color-ink-45: #85837a;
+  --color-ink-25: #56554f;
+  --color-paper: #0d131f;
+  --color-paper-sunk: #131a29;
+  --color-rule: #242c3d;
+  --color-rule-strong: #374054;
+  --color-jade: #4bbfa1;
+  --color-jade-soft: #12302a;
+  --color-rose: #e8798d;
+  --color-rose-soft: #331721;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  /* Room for the fixed bottom nav on phones, plus the home indicator. */
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
+}
+
+/* Figures. Every amount in the app goes through .figure or the Amount
+   component, so column alignment can never drift per-screen. */
+.figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+  letter-spacing: -0.01em;
+  text-align: right;
+}
+
+/* Quality floor, unannounced. */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Wide content scrolls inside its own container; the page body never does. */
+.scroll-x {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media print {
+  body {
+    padding-bottom: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
