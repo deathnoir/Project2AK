@@ -103,33 +103,48 @@ function trim(n: number): string {
  * in it.
  */
 export function parseAmount(input: string): Centavos | null {
-  const raw = input.trim()
-  if (raw === '') return null
-
-  const parenthesised = /^\(.*\)$/.test(raw)
-  let cleaned = raw
-    .replace(/^\(|\)$/g, '')
-    .replace(new RegExp(`[${PESO}${MINUS}\\s,_]`, 'g'), (m) => (m === MINUS ? '-' : ''))
+  // Strip currency noise FIRST, so a parenthesised negative is still
+  // recognisable after a leading ₱ ("₱(1,234.56)" is how a statement paste
+  // arrives).
+  let cleaned = input
+    .replace(new RegExp(`[${PESO}\\s,_]`, 'g'), '')
     .replace(/(?:php|peso[s]?)/gi, '')
-    .trim()
+    .replace(new RegExp(MINUS, 'g'), '-')
 
-  let negative = parenthesised
-  if (cleaned.startsWith('-')) {
-    negative = !negative
-    cleaned = cleaned.slice(1).trim()
-  } else if (cleaned.endsWith('-')) {
-    negative = !negative
-    cleaned = cleaned.slice(0, -1).trim()
-  } else if (cleaned.startsWith('+')) {
-    cleaned = cleaned.slice(1).trim()
+  if (cleaned === '') return null
+
+  let negative = false
+  if (/^\(.*\)$/.test(cleaned)) {
+    negative = true
+    cleaned = cleaned.slice(1, -1)
   }
 
-  if (cleaned === '' || !/^\d*(?:\.\d*)?$/.test(cleaned)) return null
+  if (cleaned.startsWith('-')) {
+    negative = !negative
+    cleaned = cleaned.slice(1)
+  } else if (cleaned.endsWith('-')) {
+    negative = !negative
+    cleaned = cleaned.slice(0, -1)
+  } else if (cleaned.startsWith('+')) {
+    cleaned = cleaned.slice(1)
+  }
 
-  const value = Number(cleaned)
-  if (!Number.isFinite(value)) return null
+  const match = /^(\d*)(?:\.(\d*))?$/.exec(cleaned)
+  if (!match || (match[1] === '' && (match[2] ?? '') === '')) return null
 
-  const centavos = Math.round(value * 100)
+  const whole = match[1] ?? ''
+  const fraction = match[2] ?? ''
+
+  // Build centavos from the digit string rather than multiplying a float by
+  // 100. `1.005 * 100` is 100.49999999999999 in IEEE 754, so the obvious
+  // implementation silently rounds ₱1.005 down to ₱1.00.
+  const centavoDigits = (fraction + '00').slice(0, 2)
+  let centavos = Number(whole || '0') * 100 + Number(centavoDigits)
+
+  // Anything past two decimal places rounds half-up on the third digit.
+  const third = fraction[2]
+  if (third !== undefined && Number(third) >= 5) centavos += 1
+
   if (!Number.isSafeInteger(centavos)) return null
 
   return negative ? -centavos : centavos

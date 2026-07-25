@@ -36,7 +36,7 @@ export const LIQUID_TYPES: readonly AccountType[] = ['bank', 'ewallet', 'cash']
 /** Accounts the user owes money on. Carry negative balances. */
 export const LIABILITY_TYPES: readonly AccountType[] = ['credit', 'loan']
 
-export interface Profile {
+export type Profile = {
   user_id: string
   currency: string
   locale: string
@@ -48,7 +48,7 @@ export interface Profile {
   updated_at: string
 }
 
-export interface Account {
+export type Account = {
   id: string
   user_id: string
   name: string
@@ -70,7 +70,7 @@ export interface Account {
   updated_at: string
 }
 
-export interface Category {
+export type Category = {
   id: string
   user_id: string
   group: CategoryGroup
@@ -84,7 +84,7 @@ export interface Category {
   updated_at: string
 }
 
-export interface Receipt {
+export type Receipt = {
   id: string
   user_id: string
   storage_path: string
@@ -97,7 +97,7 @@ export interface Receipt {
   updated_at: string
 }
 
-export interface RecurringRule {
+export type RecurringRule = {
   id: string
   user_id: string
   name: string
@@ -117,7 +117,7 @@ export interface RecurringRule {
   updated_at: string
 }
 
-export interface Transaction {
+export type Transaction = {
   id: string
   user_id: string
   date: string
@@ -136,7 +136,7 @@ export interface Transaction {
   updated_at: string
 }
 
-export interface Transfer {
+export type Transfer = {
   id: string
   user_id: string
   date: string
@@ -153,7 +153,7 @@ export interface Transfer {
   updated_at: string
 }
 
-export interface Budget {
+export type Budget = {
   id: string
   user_id: string
   category_id: string
@@ -165,7 +165,7 @@ export interface Budget {
   updated_at: string
 }
 
-export interface SavingsGoal {
+export type SavingsGoal = {
   id: string
   user_id: string
   category_id: string
@@ -181,7 +181,7 @@ export interface SavingsGoal {
   updated_at: string
 }
 
-export interface AccountStatement {
+export type AccountStatement = {
   id: string
   user_id: string
   account_id: string
@@ -193,7 +193,7 @@ export interface AccountStatement {
   updated_at: string
 }
 
-export interface NetWorthItem {
+export type NetWorthItem = {
   id: string
   user_id: string
   name: string
@@ -204,7 +204,7 @@ export interface NetWorthItem {
   updated_at: string
 }
 
-export interface NetWorthValue {
+export type NetWorthValue = {
   id: string
   user_id: string
   item_id: string
@@ -214,7 +214,7 @@ export interface NetWorthValue {
   updated_at: string
 }
 
-export interface NoSpendGoal {
+export type NoSpendGoal = {
   id: string
   user_id: string
   year: number
@@ -226,7 +226,7 @@ export interface NoSpendGoal {
 
 // ------------------------------------------------------------------ views --
 
-export interface AccountBalance {
+export type AccountBalance = {
   account_id: string
   user_id: string
   name: string
@@ -251,7 +251,7 @@ export interface AccountBalance {
   needs_closing: boolean
 }
 
-export interface MonthlyActual {
+export type MonthlyActual = {
   user_id: string
   category_id: string
   year: number
@@ -260,7 +260,7 @@ export interface MonthlyActual {
   txn_count: number
 }
 
-export interface BudgetVsActual {
+export type BudgetVsActual = {
   user_id: string
   category_id: string
   category_group: CategoryGroup
@@ -281,7 +281,7 @@ export interface BudgetVsActual {
   variance_centavos: number
 }
 
-export interface SafeToSpend {
+export type SafeToSpend = {
   user_id: string
   next_payday: string
   days_to_payday: number
@@ -290,7 +290,7 @@ export interface SafeToSpend {
   safe_to_spend_centavos: number
 }
 
-export interface SavingsProgress {
+export type SavingsProgress = {
   goal_id: string
   user_id: string
   category_id: string
@@ -307,14 +307,14 @@ export interface SavingsProgress {
   months_remaining: number | null
 }
 
-export interface BeneficiaryTotal {
+export type BeneficiaryTotal = {
   user_id: string
   beneficiary: string
   saved_centavos: number
   change_this_month_centavos: number
 }
 
-export interface DebtProgress {
+export type DebtProgress = {
   account_id: string
   user_id: string
   name: string
@@ -339,7 +339,7 @@ export interface DebtProgress {
   months_to_payoff: number | null
 }
 
-export interface Reconciliation {
+export type Reconciliation = {
   account_id: string
   user_id: string
   name: string
@@ -353,7 +353,7 @@ export interface Reconciliation {
   delta_centavos: number | null
 }
 
-export interface NoSpendDay {
+export type NoSpendDay = {
   user_id: string
   day: string
   year: number
@@ -363,7 +363,7 @@ export interface NoSpendDay {
   is_elapsed: boolean
 }
 
-export interface NetWorthMonth {
+export type NetWorthMonth = {
   user_id: string
   month: string
   accounts_centavos: number
