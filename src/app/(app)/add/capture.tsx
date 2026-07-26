@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Card, CardHeader, Muted } from '@/components/ui/primitives'
 import { InstallPrompt } from './install-prompt'
@@ -23,7 +23,7 @@ export function Capture({ extractionAvailable }: { extractionAvailable: boolean 
   const cameraRef = useRef<HTMLInputElement>(null)
   const pickerRef = useRef<HTMLInputElement>(null)
 
-  function send(files: File[]) {
+  const send = useCallback((files: File[]) => {
     if (files.length === 0) return
     setStatus(files.length === 1 ? 'Reading the receipt…' : `Reading ${files.length} receipts…`)
 
@@ -46,7 +46,7 @@ export function Capture({ extractionAvailable }: { extractionAvailable: boolean 
       setStatus(null)
       if (firstId) router.push(`/add/review/${firstId}`)
     })
-  }
+  }, [router])
 
   // Desktop: paste a screenshot anywhere on the Add screen.
   useEffect(() => {
@@ -58,10 +58,7 @@ export function Capture({ extractionAvailable }: { extractionAvailable: boolean 
     }
     document.addEventListener('paste', onPaste)
     return () => document.removeEventListener('paste', onPaste)
-    // send is stable enough for this listener's lifetime; re-binding on every
-    // keystroke elsewhere in the form would drop an in-flight paste.
-
-  }, [])
+  }, [send])
 
   return (
     <Card>

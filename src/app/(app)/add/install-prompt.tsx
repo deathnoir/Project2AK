@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Button } from '@/components/ui/primitives'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -23,13 +23,24 @@ const DISMISSED_KEY = 'p2ak.install-dismissed'
  */
 export function InstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
-  const [standalone, setStandalone] = useState(true)
-  const [dismissed, setDismissed] = useState(true)
+  const [dismissed, setDismissed] = useState(false)
+
+  // Browser-only state, read through useSyncExternalStore rather than an
+  // effect: the server snapshot keeps hydration honest, and the media query is
+  // subscribed rather than sampled once, so installing mid-session hides this
+  // without a reload.
+  const standalone = useSyncExternalStore(
+    subscribeToDisplayMode,
+    () => window.matchMedia('(display-mode: standalone)').matches,
+    () => true,
+  )
+  const previouslyDismissed = useSyncExternalStore(
+    subscribeToStorage,
+    () => window.localStorage.getItem(DISMISSED_KEY) === '1',
+    () => true,
+  )
 
   useEffect(() => {
-    setStandalone(window.matchMedia('(display-mode: standalone)').matches)
-    setDismissed(window.localStorage.getItem(DISMISSED_KEY) === '1')
-
     function onPrompt(event: Event) {
       event.preventDefault()
       setDeferred(event as BeforeInstallPromptEvent)
@@ -38,7 +49,12 @@ export function InstallPrompt() {
     return () => window.removeEventListener('beforeinstallprompt', onPrompt)
   }, [])
 
-  if (standalone || dismissed || !deferred) return null
+  if (standalone || previouslyDismissed || dismissed || !deferred) return null
+
+  function dismiss() {
+    window.localStorage.setItem(DISMISSED_KEY, '1')
+    setDismissed(true)
+  }
 
   return (
     <div className="rounded-[6px] border border-rule bg-paper-sunk p-3">
@@ -54,24 +70,26 @@ export function InstallPrompt() {
             await deferred.prompt()
             const { outcome } = await deferred.userChoice
             setDeferred(null)
-            if (outcome === 'dismissed') {
-              window.localStorage.setItem(DISMISSED_KEY, '1')
-              setDismissed(true)
-            }
+            if (outcome === 'dismissed') dismiss()
           }}
         >
           Install
         </Button>
-        <Button
-          variant="quiet"
-          onClick={() => {
-            window.localStorage.setItem(DISMISSED_KEY, '1')
-            setDismissed(true)
-          }}
-        >
+        <Button variant="quiet" onClick={dismiss}>
           Not now
         </Button>
       </div>
     </div>
   )
+}
+
+function subscribeToDisplayMode(onChange: () => void) {
+  const query = window.matchMedia('(display-mode: standalone)')
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+
+function subscribeToStorage(onChange: () => void) {
+  window.addEventListener('storage', onChange)
+  return () => window.removeEventListener('storage', onChange)
 }

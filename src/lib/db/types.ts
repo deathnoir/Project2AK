@@ -242,6 +242,7 @@ export type AccountBalance = {
   tracking_mode: TrackingMode
   closed_at: string | null
   closure_confirmed: boolean
+  closure_note: string | null
   transactions_centavos: number
   transfers_in_centavos: number
   transfers_out_centavos: number
@@ -326,6 +327,7 @@ export type DebtProgress = {
   tracking_mode: TrackingMode
   closed_at: string | null
   closure_confirmed: boolean
+  closure_note: string | null
   needs_closing: boolean
   owed_centavos: number
   derived_balance_centavos: number

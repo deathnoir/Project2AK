@@ -45,7 +45,7 @@ type Insertable<Row> = Row extends { user_id: string }
   ? Partial<Row> & { user_id: string }
   : Partial<Row>
 
-type Table<Row, _Generated extends keyof Row = never> = {
+type Table<Row> = {
   Row: Row
   Insert: Insertable<Row>
   Update: Partial<Row>
@@ -53,9 +53,6 @@ type Table<Row, _Generated extends keyof Row = never> = {
 }
 
 type View<Row> = { Row: Row; Relationships: [] }
-
-type Stamps = 'id' | 'created_at' | 'updated_at'
-type SoftStamps = Stamps | 'deleted_at'
 
 /**
  * Declared as a type alias, not an interface: only aliases get the implicit
@@ -65,19 +62,19 @@ type SoftStamps = Stamps | 'deleted_at'
 export type Database = {
   public: {
     Tables: {
-      profiles: Table<Profile, 'created_at' | 'updated_at'>
-      accounts: Table<Account, SoftStamps>
-      categories: Table<Category, SoftStamps>
-      receipts: Table<Receipt, Stamps>
-      recurring_rules: Table<RecurringRule, SoftStamps>
-      transactions: Table<Transaction, SoftStamps>
-      transfers: Table<Transfer, SoftStamps>
-      budgets: Table<Budget, Stamps>
-      savings_goals: Table<SavingsGoal, SoftStamps>
-      account_statements: Table<AccountStatement, Stamps>
-      net_worth_items: Table<NetWorthItem, SoftStamps>
-      net_worth_values: Table<NetWorthValue, Stamps>
-      no_spend_goals: Table<NoSpendGoal, Stamps>
+      profiles: Table<Profile>
+      accounts: Table<Account>
+      categories: Table<Category>
+      receipts: Table<Receipt>
+      recurring_rules: Table<RecurringRule>
+      transactions: Table<Transaction>
+      transfers: Table<Transfer>
+      budgets: Table<Budget>
+      savings_goals: Table<SavingsGoal>
+      account_statements: Table<AccountStatement>
+      net_worth_items: Table<NetWorthItem>
+      net_worth_values: Table<NetWorthValue>
+      no_spend_goals: Table<NoSpendGoal>
     }
     Views: {
       v_account_balances: View<AccountBalance>

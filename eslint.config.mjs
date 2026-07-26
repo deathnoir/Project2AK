@@ -1,10 +1,17 @@
-import { dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { FlatCompat } from '@eslint/eslintrc'
+import coreWebVitals from 'eslint-config-next/core-web-vitals'
+import typescript from 'eslint-config-next/typescript'
 
-const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta.url)) })
-
-export default [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
-  { ignores: ['.next/**', 'node_modules/**', 'supabase/**'] },
+/*
+ * Flat config directly, not through FlatCompat. The compat bridge throws a
+ * circular-structure error on eslint-config-next under ESLint 10, and
+ * eslint-config-next already ships flat-config exports.
+ */
+const config = [
+  ...coreWebVitals,
+  ...typescript,
+  {
+    ignores: ['.next/**', 'node_modules/**', 'supabase/**', 'public/sw.js'],
+  },
 ]
+
+export default config

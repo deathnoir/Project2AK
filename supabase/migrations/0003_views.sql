@@ -59,6 +59,7 @@ select
   a.tracking_mode,
   a.closed_at,
   a.closure_confirmed,
+  a.closure_note,
   coalesce(tx.total, 0)               as transactions_centavos,
   coalesce(tin.total, 0)              as transfers_in_centavos,
   coalesce(tout.total, 0)             as transfers_out_centavos,
@@ -414,6 +415,7 @@ select
   b.tracking_mode,
   b.closed_at,
   b.closure_confirmed,
+  b.closure_note,
   b.needs_closing,
   -- Positive magnitude of what is owed. A liability carries a negative
   -- balance, so flip it once, here, and never think about it again.
