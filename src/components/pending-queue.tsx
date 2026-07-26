@@ -3,9 +3,10 @@
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { Amount } from '@/components/ui/amount'
-import { Button, Card, CardHeader, EmptyState } from '@/components/ui/primitives'
+import { Button, Card, CardHeader, EmptyState, Input } from '@/components/ui/primitives'
 import { formatDate } from '@/lib/dates'
-import { confirmPending, skipPending } from '@/server/actions/recurring'
+import { parseAmount } from '@/lib/money'
+import { confirmPending, editAndConfirmPending, skipPending } from '@/server/actions/recurring'
 
 export interface PendingRow {
   id: string
@@ -29,6 +30,9 @@ export function PendingQueue({ rows }: { rows: PendingRow[] }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [busy, setBusy] = useState<string | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
+  const [draftAmount, setDraftAmount] = useState('')
+  const [draftDate, setDraftDate] = useState('')
 
   if (rows.length === 0) {
     return (
@@ -84,11 +88,73 @@ export function PendingQueue({ rows }: { rows: PendingRow[] }) {
               <Button
                 className="min-h-[2.25rem] px-3 text-xs"
                 disabled={pending && busy === row.id}
+                onClick={() => {
+                  if (editing === row.id) {
+                    setEditing(null)
+                    return
+                  }
+                  // A "same as last time" bill lands with last month's figure;
+                  // editing before confirming is the normal case, not an edge.
+                  setEditing(row.id)
+                  setDraftAmount((Math.abs(row.amountCentavos) / 100).toFixed(2))
+                  setDraftDate(row.date)
+                }}
+              >
+                {editing === row.id ? 'Cancel' : 'Edit'}
+              </Button>
+              <Button
+                className="min-h-[2.25rem] px-3 text-xs"
+                disabled={pending && busy === row.id}
                 onClick={() => act(row, 'skip')}
               >
                 Skip
               </Button>
             </div>
+
+            {editing === row.id ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-rule pt-2">
+                <Input
+                  aria-label="Amount"
+                  className="figure w-28"
+                  inputMode="decimal"
+                  value={draftAmount}
+                  onChange={(e) => setDraftAmount(e.target.value)}
+                />
+                <Input
+                  aria-label="Date"
+                  type="date"
+                  className="w-40"
+                  value={draftDate}
+                  onChange={(e) => setDraftDate(e.target.value)}
+                />
+                <Button
+                  variant="primary"
+                  className="min-h-[2.25rem] px-3 text-xs"
+                  disabled={pending}
+                  onClick={() => {
+                    const amount = parseAmount(draftAmount)
+                    if (amount === null) return
+                    setBusy(row.id)
+                    startTransition(async () => {
+                      await editAndConfirmPending({
+                        id: row.id,
+                        kind: row.kind,
+                        // Preserve the direction: correcting a figure must
+                        // never flip an expense into income.
+                        amountCentavos:
+                          row.amountCentavos < 0 ? -Math.abs(amount) : Math.abs(amount),
+                        date: draftDate,
+                      })
+                      setEditing(null)
+                      setBusy(null)
+                      router.refresh()
+                    })
+                  }}
+                >
+                  Save and confirm
+                </Button>
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

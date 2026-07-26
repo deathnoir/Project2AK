@@ -15,7 +15,12 @@ import {
 import { formatCentavos, parseAmount } from '@/lib/money'
 import { monthName, today } from '@/lib/dates'
 import { comparePayoff, DEFAULT_STRATEGY, orderAccounts } from '@/lib/domain/payoff'
-import { bookAdjustment, markAccountClosed, recordStatement } from '@/server/actions/debt'
+import {
+  bookAdjustment,
+  markAccountClosed,
+  recordStatement,
+  reopenAccount,
+} from '@/server/actions/debt'
 import type { DebtProgress } from '@/lib/db/types'
 import { cn } from '@/lib/cn'
 
@@ -202,6 +207,18 @@ export function DebtScreen({ accounts }: { accounts: DebtProgress[] }) {
                   <Muted className="figure text-xs">{account.closure_note}</Muted>
                 ) : null}
                 <span className="text-xs text-jade">Closed</span>
+                <Button
+                  variant="quiet"
+                  className="min-h-0 px-2 py-1 text-xs"
+                  onClick={() =>
+                    startTransition(async () => {
+                      await reopenAccount(account.account_id)
+                      router.refresh()
+                    })
+                  }
+                >
+                  Reopen
+                </Button>
               </li>
             ))}
           </ul>

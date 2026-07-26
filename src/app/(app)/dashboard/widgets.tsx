@@ -1,6 +1,7 @@
 import { Amount } from '@/components/ui/amount'
+import { MarkPaidButton } from './mark-paid'
 import { Card, CardHeader, EmptyState, Muted, Row, Rows } from '@/components/ui/primitives'
-import { formatDate, monthName } from '@/lib/dates'
+import { monthName } from '@/lib/dates'
 import type { BudgetVsActual, NoSpendDay } from '@/lib/db/types'
 import { yearToDate } from '@/lib/domain/budget'
 
@@ -39,6 +40,13 @@ export function BillsDue({
               <span className="figure w-8 text-sm text-ink-45">{row.due_day}</span>
               <span className="flex-1 truncate text-sm">{row.category_name}</span>
               <Amount centavos={row.budget_centavos} size="sm" tone="none" />
+              {/* Without this the list never clears, and a widget that always
+                  shows the same four bills stops being read. */}
+              <MarkPaidButton
+                categoryId={row.category_id}
+                year={row.year}
+                month={row.month}
+              />
             </Row>
           ))}
         </Rows>
@@ -126,8 +134,4 @@ export function YtdStrip({
       </dl>
     </Card>
   )
-}
-
-export function DueDateHint({ date }: { date: string }) {
-  return <Muted className="text-xs">{formatDate(date)}</Muted>
 }

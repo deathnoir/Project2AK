@@ -3,6 +3,7 @@ import { Card, CardHeader, Row, Rows, Screen, ScreenTitle } from '@/components/u
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/server/actions/settings'
 import { SignOutButton } from './sign-out'
+import { ProfileForm } from './profile-form'
 
 export const metadata = { title: 'Settings · Project2AK' }
 
@@ -10,6 +11,7 @@ const LINKS = [
   { href: '/settings/accounts', label: 'Where money sits', hint: 'Names, types, opening balances, credit terms' },
   { href: '/settings/categories', label: 'Categories', hint: 'Names, groups, due days, rollover' },
   { href: '/settings/recurring', label: 'Recurring rules', hint: 'Bills and installments that generate themselves' },
+  { href: '/settings/savings', label: 'Savings goals', hint: 'Goals, sinking funds, and the 2AK line' },
   { href: '/settings/reconciliation', label: 'Reconciliation', hint: 'Match against real statements each month' },
 ]
 
@@ -80,15 +82,10 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader title="Account" hint={user?.email ?? ''} />
-        <div className="space-y-1 px-4 py-3 text-sm text-ink-45">
-          <p>
-            Active year <span className="figure text-ink">{profile?.active_year}</span>
-          </p>
-          <p>
-            Paydays{' '}
-            <span className="figure text-ink">{(profile?.payday_days ?? []).join(', ')}</span>
-          </p>
-        </div>
+        <ProfileForm
+          activeYear={profile?.active_year ?? new Date().getFullYear()}
+          paydayDays={profile?.payday_days ?? [15, 30]}
+        />
         <div className="border-t border-rule p-3">
           <SignOutButton action={signOut} />
         </div>

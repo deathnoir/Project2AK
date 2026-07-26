@@ -313,10 +313,3 @@ export async function checkDuplicate(input: {
     candidates,
   )
 }
-
-/** A time-limited URL for a private receipt image. */
-export async function receiptImageUrl(storagePath: string): Promise<string | null> {
-  const supabase = await createClient()
-  const { data } = await supabase.storage.from('receipts').createSignedUrl(storagePath, 60 * 60)
-  return data?.signedUrl ?? null
-}

@@ -210,15 +210,6 @@ export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return <select {...props} className={cn(INPUT_CLASS, 'pr-8', props.className)} />
 }
 
-export function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea
-      {...props}
-      className={cn(INPUT_CLASS, 'min-h-[5rem] resize-y py-2', props.className)}
-    />
-  )
-}
-
 export function EmptyState({
   title,
   children,

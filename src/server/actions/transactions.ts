@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-import { today, type DateString } from '@/lib/dates'
 import type { Transaction } from '@/lib/db/types'
 
 export type TxResult =
@@ -394,8 +393,4 @@ async function findCategoryId(
     .is('deleted_at', null)
     .maybeSingle()
   return data?.id ?? null
-}
-
-export async function defaultDate(): Promise<DateString> {
-  return today()
 }
