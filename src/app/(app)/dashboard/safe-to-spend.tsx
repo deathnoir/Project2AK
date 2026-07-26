@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Amount } from '@/components/ui/amount'
 import { formatDate } from '@/lib/dates'
 import type { BeneficiaryTotal, SafeToSpend } from '@/lib/db/types'
@@ -58,7 +59,13 @@ function TwoAkLine({ beneficiary }: { beneficiary: BeneficiaryTotal | null }) {
   const change = beneficiary.change_this_month_centavos
 
   return (
-    <p className="mt-4 text-sm text-ink-70">
+    // A link, but nothing about it announces that — no chevron, no button, no
+    // colour. The underline appears only on hover, so at rest the line still
+    // reads as a statement rather than a control.
+    <Link
+      href="/savings"
+      className="mt-4 block text-sm text-ink-70 hover:underline"
+    >
       <span className="text-ink-45">For {beneficiary.beneficiary}</span>{' '}
       <Amount centavos={beneficiary.saved_centavos} size="sm" tone="none" />
       {change !== 0 ? (
@@ -68,6 +75,6 @@ function TwoAkLine({ beneficiary }: { beneficiary: BeneficiaryTotal | null }) {
           <Amount centavos={change} size="sm" signed />
         </>
       ) : null}
-    </p>
+    </Link>
   )
 }

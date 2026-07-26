@@ -11,7 +11,8 @@ const LINKS = [
   { href: '/settings/accounts', label: 'Where money sits', hint: 'Names, types, opening balances, credit terms' },
   { href: '/settings/categories', label: 'Categories', hint: 'Names, groups, due days, rollover' },
   { href: '/settings/recurring', label: 'Recurring rules', hint: 'Bills and installments that generate themselves' },
-  { href: '/settings/savings', label: 'Savings goals', hint: 'Goals, sinking funds, and the 2AK line' },
+  { href: '/savings', label: 'Savings', hint: 'Progress on goals and sinking funds' },
+  { href: '/settings/savings', label: 'Edit savings goals', hint: 'Targets, monthly amounts, and the 2AK tag' },
   { href: '/settings/reconciliation', label: 'Reconciliation', hint: 'Match against real statements each month' },
 ]
 

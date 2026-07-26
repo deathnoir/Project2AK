@@ -380,16 +380,43 @@ select
   g.user_id,
   g.beneficiary,
   sum(sp.saved_centavos)                                   as saved_centavos,
-  coalesce(sum(-mtd.delta), 0)                             as change_this_month_centavos
+  -- The change has to follow the same source the balance does. An
+  -- account-tracked goal (the transfer model — salary lands in the bank, a
+  -- transfer moves it across) sees nothing in its category, so reading only
+  -- category rows reported a flat zero every month no matter how much was
+  -- moved. Mirror the coalesce in v_savings_progress exactly.
+  coalesce(
+    sum(
+      case when g.account_id is not null
+           then coalesce(acct.delta, 0)
+           else -coalesce(cat.delta, 0)
+      end
+    ), 0)                                                  as change_this_month_centavos
 from savings_goals g
 join v_savings_progress sp on sp.goal_id = g.id
+left join lateral (
+  select
+    coalesce((select sum(tr.amount_centavos) from transfers tr
+              where tr.to_account_id = g.account_id and tr.deleted_at is null
+                and not tr.is_pending
+                and tr.date >= date_trunc('month', current_date)::date), 0)
+    - coalesce((select sum(tr.amount_centavos) from transfers tr
+                where tr.from_account_id = g.account_id and tr.deleted_at is null
+                  and not tr.is_pending
+                  and tr.date >= date_trunc('month', current_date)::date), 0)
+    + coalesce((select sum(t.amount_centavos) from transactions t
+                where t.account_id = g.account_id and t.deleted_at is null
+                  and not t.is_pending
+                  and t.date >= date_trunc('month', current_date)::date), 0)
+    as delta
+) acct on g.account_id is not null
 left join lateral (
   select sum(t.amount_centavos) as delta
   from transactions t
   where t.category_id = g.category_id
     and t.deleted_at is null and not t.is_pending
     and t.date >= date_trunc('month', current_date)::date
-) mtd on true
+) cat on g.account_id is null
 where g.deleted_at is null and g.beneficiary is not null
 group by 1, 2;
 
