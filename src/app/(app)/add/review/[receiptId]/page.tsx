@@ -3,8 +3,16 @@ import { Screen, ScreenTitle } from '@/components/ui/primitives'
 import { createClient } from '@/lib/supabase/server'
 import { extractionSchema } from '@/lib/extraction/schema'
 import { ReviewForm } from '../review-form'
+import { runExtraction } from '@/server/actions/receipts'
 
 export const metadata = { title: 'Review receipt · Project2AK' }
+
+/**
+ * A vision call on a receipt routinely runs longer than the 10s a serverless
+ * function gets by default. This is where the wait belongs — there's a page to
+ * show progress on, unlike inside the share sheet.
+ */
+export const maxDuration = 60
 
 export default async function ReviewPage({
   params,
@@ -22,7 +30,7 @@ export default async function ReviewPage({
   } = await supabase.auth.getUser()
   const userId = user?.id ?? ''
 
-  const { data: receipt } = await supabase
+  let { data: receipt } = await supabase
     .from('receipts')
     .select('*')
     .eq('id', receiptId)
@@ -30,6 +38,19 @@ export default async function ReviewPage({
     .maybeSingle()
 
   if (!receipt) notFound()
+
+  // The share target uploads and redirects without extracting, so the first
+  // view of a shared receipt is where the model actually runs.
+  if (receipt.status === 'pending') {
+    await runExtraction(receiptId)
+    const { data: refreshed } = await supabase
+      .from('receipts')
+      .select('*')
+      .eq('id', receiptId)
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (refreshed) receipt = refreshed
+  }
 
   const [{ data: signed }, { data: accounts }, { data: categories }] = await Promise.all([
     supabase.storage.from('receipts').createSignedUrl(receipt.storage_path, 60 * 60),

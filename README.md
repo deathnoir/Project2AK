@@ -42,6 +42,8 @@ npm test
 npm run build
 ```
 
+Deploying to Vercel + Supabase: see [`DEPLOY.md`](DEPLOY.md).
+
 ---
 
 ## Conventions that are load-bearing

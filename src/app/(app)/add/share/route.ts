@@ -1,20 +1,26 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { runExtraction } from '@/server/actions/receipts'
+import { siteUrl } from '@/lib/site-url'
 
 /**
  * Web Share Target endpoint.
  *
  * A POST Route Handler, not a page: the browser posts the shared files here
  * from inside the share sheet, and the user is watching a spinner until this
- * redirects. Everything slow that can wait, waits.
+ * redirects.
  *
- * Accepts multiple files so batch sharing from Photos works — the manifest
- * declares the field as `image`, but Android sends `image` repeated once per
- * file.
+ * It deliberately does NOT call the vision model. Uploading and redirecting
+ * takes a moment; extraction takes seconds, and doing it here means the user
+ * stares at the share sheet for the whole round trip — and on a serverless
+ * platform it means the request can hit the function timeout and lose the
+ * receipt entirely. The review screen extracts on arrival instead, where
+ * there's a page to show progress on.
+ *
+ * Accepts multiple files so batch sharing from Photos works. The manifest
+ * declares the field as `image`; Android sends it once per file.
  */
 export async function POST(request: NextRequest) {
-  const origin = request.nextUrl.origin
+  const origin = siteUrl(request)
 
   const supabase = await createClient()
   const {
@@ -75,12 +81,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(`${origin}/add?share=failed`, 303)
   }
 
-  // Extract the first one inline so the review screen has something to show on
-  // arrival. The rest run when their review screen is opened — making the user
-  // wait inside the share sheet for a ten-image batch would defeat the point.
   const first = receiptIds[0]
-  if (first) await runExtraction(first)
-
   const queue = receiptIds.slice(1)
   const suffix = queue.length > 0 ? `?queue=${queue.join(',')}` : ''
   return NextResponse.redirect(`${origin}/add/review/${first}${suffix}`, 303)
@@ -91,5 +92,5 @@ export async function POST(request: NextRequest) {
  * Answering with a redirect keeps the app off an error page.
  */
 export async function GET(request: NextRequest) {
-  return NextResponse.redirect(`${request.nextUrl.origin}/add`, 303)
+  return NextResponse.redirect(`${siteUrl(request)}/add`, 303)
 }

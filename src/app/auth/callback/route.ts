@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { siteUrl } from '@/lib/site-url'
 
 /**
  * Magic-link landing. Exchanges the code for a session, then forwards to
@@ -7,7 +8,8 @@ import { createClient } from '@/lib/supabase/server'
  * screen, not the dashboard.
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl
+  const { searchParams } = request.nextUrl
+  const origin = siteUrl(request)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
 
