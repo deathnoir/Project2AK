@@ -133,13 +133,16 @@ export async function savePaydayConfig(raw: unknown): Promise<ActionResult> {
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Not signed in' }
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({
+  // Upsert, not update: an UPDATE matching zero rows is reported as success by
+  // PostgREST, so a missing profile row would silently discard the setting.
+  const { error } = await supabase.from('profiles').upsert(
+    {
+      user_id: user.id,
       payday_days: [...new Set(parsed.data.paydayDays)].sort((a, b) => a - b),
       active_year: parsed.data.activeYear,
-    })
-    .eq('user_id', user.id)
+    },
+    { onConflict: 'user_id' },
+  )
 
   if (error) return { ok: false, error: error.message }
   return { ok: true }
@@ -164,10 +167,12 @@ export async function completeSetup(): Promise<ActionResult> {
     return { ok: false, error: 'Add at least one place your money sits first.' }
   }
 
+  // Upsert for the same reason as above — this one is worse if it no-ops:
+  // setup_done stays false, the app layout redirects straight back to /setup,
+  // and the user is in a loop with no error to explain it.
   const { error } = await supabase
     .from('profiles')
-    .update({ setup_done: true })
-    .eq('user_id', user.id)
+    .upsert({ user_id: user.id, setup_done: true }, { onConflict: 'user_id' })
 
   if (error) return { ok: false, error: error.message }
 

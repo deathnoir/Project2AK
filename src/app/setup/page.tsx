@@ -11,6 +11,14 @@ export default async function SetupPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // The signup trigger seeds a profile and the starting categories, but it
+  // only fires for users created after it existed — sign in before the
+  // migrations are applied and you land here with neither, and the wizard has
+  // no way to create them. Idempotent, and a no-op for anyone already set up.
+  // Ignore the error: an older database without 0005 applied should still
+  // render the wizard rather than crash on a missing function.
+  await supabase.rpc('bootstrap_current_user')
+
   const [{ data: profile }, { data: categories }, { data: accounts }] = await Promise.all([
     supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
     supabase

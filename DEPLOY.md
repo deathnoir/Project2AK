@@ -133,6 +133,7 @@ and every receipt image — so pull one occasionally and put it somewhere else.
 | Magic link → "That link didn't work" | Callback URL missing from the Supabase redirect allowlist |
 | Redirected somewhere odd after sign-in | `NEXT_PUBLIC_SITE_URL` unset in Production |
 | Every screen shows ₱0.00 | Setup didn't complete — no account means nowhere for a transaction to post |
+| No categories anywhere, or setup loops back to itself | You signed in before the migrations were applied, so the signup trigger didn't exist to seed you. Apply `0005`, which backfills it |
 | Share sheet has no Project2AK | Not installed to the home screen; the share target only registers for an installed PWA |
 | Review always shows the manual form | `ANTHROPIC_API_KEY` unset, or extraction failed — the page states which |
 | Receipt thumbnails don't load | Storage policies missing; re-run `npx supabase db push` |
